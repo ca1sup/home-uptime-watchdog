@@ -1,0 +1,20 @@
+name: Home funnel uptime probe
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe home funnel endpoint
+        run: |
+          code=$(curl -s -o /dev/null -m 20 -w '%{http_code}' https://chriss-mac-studio.tail4fd5dd.ts.net/ || echo 000)
+          echo "HTTP status: $code"
+          # Any HTTP response (incl. 401 auth gate) means the Mac + Tailscale + ISP are up.
+          # 000 means DNS/connection failure: home is unreachable from the internet.
+          if [ "$code" = "000" ]; then
+            echo "::error::Home funnel unreachable (000) — Mac down, Tailscale down, or ISP/power outage at home"
+            exit 1
+          fi
+          echo "Home reachable (HTTP $code)"
