@@ -9,11 +9,11 @@ jobs:
     steps:
       - name: Probe home funnel endpoint
         run: |
-          code=$(curl -4 -s -o /dev/null -m 20 -w '%{http_code}' https://chriss-mac-studio.tail4fd5dd.ts.net/ || echo 000)
+          code=$(curl -4 -s -o /dev/null -m 20 -w '%{http_code}' https://chriss-mac-studio.tail4fd5dd.ts.net/)
+          [ -z "$code" ] && code=000
           echo "HTTP status: $code"
-          # Any HTTP response (incl. 401 auth gate) means the Mac + Tailscale + ISP are up.
-          # 000 means DNS/connection failure: home is unreachable from the internet.
-          if [ "$code" = "000" ]; then
+          # Any HTTP response (incl. 401 auth gate) means Mac + Tailscale + ISP are up.
+          if [ "${code:0:3}" = "000" ]; then
             echo "::error::Home funnel unreachable (000) — Mac down, Tailscale down, or ISP/power outage at home"
             exit 1
           fi
